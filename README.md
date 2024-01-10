@@ -12,9 +12,6 @@ This repository contains the source code for a Web3 decentralized application (d
   - [Backend](#backend)
   - [Frontend](#frontend)
 - [Folder Structure](#folder-structure)
-- [Testing](#testing)
-- [Deployment](#deployment)
-- [Contributing](#contributing)
 - [License](#license)
 
 ## Features
@@ -41,7 +38,7 @@ This repository contains the source code for a Web3 decentralized application (d
 ### Frontend
 
 1. Navigate to the `frontend` directory.
-2. Install Node.js dependencies: `npm install`.
+2. Install node.js dependencies: `npm install`.
 3. Run the frontend: `npm start`.
 
 ## Folder Structure
