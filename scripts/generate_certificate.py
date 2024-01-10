@@ -1,4 +1,5 @@
 import os
+import requests 
 from openai import OpenAI
 from dotenv import load_dotenv
 
@@ -37,4 +38,9 @@ response = client.images.generate(
 )
 
 image_url = response.data[0].url
-print(image_url)
+
+image_data = requests.get(image_url).content
+with open("certificate.png", "wb") as f:
+  f.write(image_data)
+
+print("Image saved successfully.")
