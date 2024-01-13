@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from ipfs_operations import pin_to_ipfs
-from algorand_operations import create_asset
+from algorand_operations import create_asset, opt_in_asset, transfer_asset, freeze_asset
 from email_operations import send_email
 import os
 
@@ -28,8 +28,16 @@ def issue_nft(trainee: Trainee):
 @app.post("/opt_in")
 def opt_in_to_asset_endpoint(trainee: Trainee):
     try:
-        # Assuming trainee provides their email and asset_id in the request
-        opt_in_to_asset(trainee.email, trainee.asset_id)
+        opt_in_asset(trainee.email, trainee.asset_id, acct.get_keys("trainee_1"))
     except HTTPException as e:
         return e
     return {"message": "Opt-in successful!"}
+
+@app.post("/transfer_asset")
+def transfer_asset_endpoint(trainee: Trainee, recipient_address: str):
+    try:
+        transfer_asset(acct.get_keys("tutor"), acct.get_keys("trainee_1"), created_asset)
+        freeze_asset(acct.get_keys("tutor"), acct.get_keys("trainee_1"), created_asset)
+    except HTTPException as e:
+        return e
+    return {"message": "Asset transfer successful!"}
