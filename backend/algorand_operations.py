@@ -50,3 +50,48 @@ def opt_in_asset(trainee_email, asset_id, acct2):
     results = transaction.wait_for_confirmation(algo_client, txid, 4)
     print(f"Result confirmed in round: {results['confirmed-round']}")
 
+
+def transfer_asset(acct1, acct2, created_asset):
+    address1 = acct1["address"]
+    pk1 = acct1["private_key"]
+    address2 = acct2["address"]
+    pk2 = acct2["private_key"]
+
+    algo_client = AlgoClient("http://localhost:4001", "a" * 64).get_algod_client()
+    sp = algo_client.suggested_params()
+
+    xfer_txn = transaction.AssetTransferTxn(
+        sender=address1,
+        sp=sp,
+        receiver=address2,
+        amt=1,
+        index=created_asset,
+    )
+    signed_xfer_txn = xfer_txn.sign(pk1)
+    txid = algod_client.send_transaction(signed_xfer_txn)
+    print(f"Sent transfer transaction with txid: {txid}")
+
+    results = transaction.wait_for_confirmation(algod_client, txid, 4)
+    print(f"Result confirmed in round: {results['confirmed-round']}")
+
+def freeze_asset(acct1, acct2, created_asset):
+    address1 = acct1["address"]
+    pk1 = acct1["private_key"]
+    address2 = acct2["address"]
+    pk2 = acct2["private_key"]
+
+    algo_client = AlgoClient("http://localhost:4001", "a" * 64).get_algod_client()
+    sp = algod_client.suggested_params()
+    freeze_txn = transaction.AssetFreezeTxn(
+        sender=address1,
+        sp=sp,
+        index=created_asset,
+        target=address2,
+        new_freeze_state=True,
+    )
+    signed_freeze_txn = freeze_txn.sign(pk1)
+    txid = algod_client.send_transaction(signed_freeze_txn)
+    print(f"Sent freeze transaction with txid: {txid}")
+
+    results = transaction.wait_for_confirmation(algod_client, txid, 4)
+    print(f"Result confirmed in round: {results['confirmed-round']}")
