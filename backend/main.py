@@ -24,3 +24,12 @@ def issue_nft(trainee: Trainee):
     
     send_email(trainee.email, asset_id, trainee.name)
     return trainee
+
+@app.post("/opt_in")
+def opt_in_to_asset_endpoint(trainee: Trainee):
+    try:
+        # Assuming trainee provides their email and asset_id in the request
+        opt_in_to_asset(trainee.email, trainee.asset_id)
+    except HTTPException as e:
+        return e
+    return {"message": "Opt-in successful!"}
