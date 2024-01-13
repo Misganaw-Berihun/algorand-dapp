@@ -17,19 +17,42 @@ const StaffForm = ({ trainees, onTraineeApproval }) => {
     email: "",
   });
 
-  const handleCreateTrainee = () => {
+  const handleCreateTrainee = async () => {
     // Validate the form fields
     if (newTrainee.name && newTrainee.email) {
-      // Add the new trainee to the list with status 'in_progress'
-      onTraineeApproval({ ...newTrainee, status: "in_progress" });
-      setNewTrainee({ name: "", email: "" });
+      try {
+        // Make a request to create a trainee in the backend
+        const response = await fetch("http://localhost:8000/create_trainee", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newTrainee),
+        });
+
+        if (response.ok) {
+          // If the trainee is successfully created, add it to the list with status 'in_progress'
+          const traineeData = await response.json();
+          onTraineeApproval({ ...traineeData, status: "in_progress" });
+          setNewTrainee({ name: "", email: "" });
+          alert("Trainee created successfully!");
+        } else {
+          alert("Error creating trainee");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        alert("An error occurred.");
+      }
     } else {
       alert("Please fill in all fields.");
     }
   };
 
   const handleTraineeApproval = (trainee) => {
-    onTraineeApproval(trainee);
+    // Pass the trainee to the backend for further processing
+    // For example, you may want to send an approval request to the backend
+    // and update the trainee status based on the backend response
+    // onTraineeApproval(trainee);
   };
 
   return (

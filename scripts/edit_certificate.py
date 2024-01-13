@@ -16,8 +16,8 @@ def add_logo(certificate, logo, position):
 def add_text(certificate, text, position, font_size, font_color, font_thickness, font=cv2.FONT_HERSHEY_SIMPLEX):
     cv2.putText(certificate, text, position, font, font_size, font_color, font_thickness)
 
-def generate_certificate(full_name, date, output_path, certificate_id):
-    certificate_bg = load_image("certificate.png")
+def generate_certificate(full_name, date, path, output_path, certificate_id):
+    certificate_bg = load_image("../images/certificate.png")
     logo = load_image("logo.png")
     logo = resize_logo(logo, target_width=100)
     
@@ -39,4 +39,4 @@ if __name__ == "__main__":
     full_name = "Misganaw Berihun"
     date = datetime.now()
     output_path = "output_certificate.jpg"
-    generate_certificate(full_name, date, output_path, "dkfjldkjfkldkdljk39434")
+    generate_certificate(full_name, date, output_path, "CTF123494u5664098")
