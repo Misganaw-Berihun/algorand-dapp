@@ -16,9 +16,9 @@ def add_logo(certificate, logo, position):
 def add_text(certificate, text, position, font_size, font_color, font_thickness, font=cv2.FONT_HERSHEY_SIMPLEX):
     cv2.putText(certificate, text, position, font, font_size, font_color, font_thickness)
 
-def generate_certificate(full_name, date, path, output_path, certificate_id):
+def generate_certificate(full_name, date, output_path, certificate_id):
     certificate_bg = load_image("../images/certificate.png")
-    logo = load_image("logo.png")
+    logo = load_image("../images/logo.png")
     logo = resize_logo(logo, target_width=100)
     
     add_logo(certificate_bg, logo, position=(20, 20))

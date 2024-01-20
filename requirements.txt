@@ -6,3 +6,5 @@ fastapi
 uvicorn
 requests-toolbelt
 python-dotenv
+py-algorand-sdk
+opencv-python
