@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Button, TextField, CircularProgress } from "@mui/material";
 import {
-  Button,
-  TextField,
   Table,
   TableBody,
   TableCell,
@@ -11,18 +10,107 @@ import {
   Paper,
 } from "@mui/material";
 
-const StaffForm = ({ trainees, onTraineeApproval }) => {
+const StaffForm = ({ trainees }) => {
   const [newTrainee, setNewTrainee] = useState({
     name: "",
     email: "",
   });
+  const [optInList, setOptInList] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Fetch the list of trainees who have opted in from the backend
+    const fetchOptInList = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/opt_in_list");
+        if (response.ok) {
+          const optInListData = await response.json();
+          setOptInList(optInListData);
+        } else {
+          console.error("Error fetching opt-in list");
+        }
+      } catch (error) {
+        console.error("Error fetching opt-in list:", error);
+      }
+    };
+
+    fetchOptInList();
+  }, []);
+
+  const handleApprove = async (assetId) => {
+    try {
+      // Call the backend endpoint to approve the opt-in request
+      const response = await fetch("http://127.0.0.1:8000/transfer_asset", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          asset_id: assetId,
+          name: "TraineeName",
+          email: "trainee@example.com",
+        }),
+      });
+
+      if (response.ok) {
+        // Update the user state to reflect approval
+        setOptInList((prevList) =>
+          prevList.map((trainee) =>
+            trainee.assetId === assetId
+              ? { ...trainee, state: "approved" }
+              : trainee
+          )
+        );
+        alert("Opt-in request approved successfully!");
+      } else {
+        console.error("Error approving opt-in request");
+      }
+    } catch (error) {
+      console.error("Error approving opt-in request:", error);
+    }
+  };
+
+  const handleDecline = async (assetId) => {
+    try {
+      // Call the backend endpoint to decline the opt-in request
+      const response = await fetch("http://127.0.0.1:8000/decline_opt_in", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: "TraineeName",
+          email: "trainee@example.com",
+        }),
+      });
+
+      if (response.ok) {
+        // Update the user state to reflect decline
+        setOptInList((prevList) =>
+          prevList.map((trainee) =>
+            trainee.assetId === assetId
+              ? { ...trainee, state: "declined" }
+              : trainee
+          )
+        );
+        alert("Opt-in request declined successfully!");
+      } else {
+        console.error("Error declining opt-in request");
+      }
+    } catch (error) {
+      console.error("Error declining opt-in request:", error);
+    }
+  };
 
   const handleCreateTrainee = async () => {
-    // Validate the form fields
+    console.log("New Trainee:");
+    console.log(newTrainee);
+
     if (newTrainee.name && newTrainee.email) {
       try {
-        // Make a request to create a trainee in the backend
-        const response = await fetch("http://localhost:8000/create_trainee", {
+        setLoading(true);
+
+        const response = await fetch("http://127.0.0.1:8000/create_trainee", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -31,33 +119,26 @@ const StaffForm = ({ trainees, onTraineeApproval }) => {
         });
 
         if (response.ok) {
-          // If the trainee is successfully created, add it to the list with status 'in_progress'
-          const traineeData = await response.json();
-          onTraineeApproval({ ...traineeData, status: "in_progress" });
           setNewTrainee({ name: "", email: "" });
           alert("Trainee created successfully!");
         } else {
-          alert("Error creating trainee");
+          const errorMessage = await response.text();
+          alert(`Error creating trainee: ${errorMessage}`);
         }
       } catch (error) {
         console.error("Error:", error);
         alert("An error occurred.");
+      } finally {
+        setLoading(false);
       }
     } else {
       alert("Please fill in all fields.");
     }
   };
 
-  const handleTraineeApproval = (trainee) => {
-    // Pass the trainee to the backend for further processing
-    // For example, you may want to send an approval request to the backend
-    // and update the trainee status based on the backend response
-    // onTraineeApproval(trainee);
-  };
-
   return (
     <div>
-      <h2>Staff Role - Create New Trainee</h2>
+      <h2>Create New Trainee</h2>
       <TextField
         label="Name"
         value={newTrainee.name}
@@ -70,48 +151,52 @@ const StaffForm = ({ trainees, onTraineeApproval }) => {
           setNewTrainee({ ...newTrainee, email: e.target.value })
         }
       />
-      <Button variant="contained" color="primary" onClick={handleCreateTrainee}>
-        Create New Trainee
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={handleCreateTrainee}
+        disabled={loading}
+      >
+        {loading ? <CircularProgress size={24} /> : "Create New Trainee"}
       </Button>
 
-      <div style={{ marginTop: "20px" }}>
-        <h3>Trainees List</h3>
+      <div>
+        <h2>Opt-In Requests</h2>
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
               <TableRow>
                 <TableCell>Name</TableCell>
-                <TableCell>Status</TableCell>
                 <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {trainees.map((trainee, index) => (
-                <TableRow key={index}>
-                  <TableCell>{trainee.name}</TableCell>
-                  <TableCell>{trainee.status}</TableCell>
+              {optInList.map((trainee) => (
+                <TableRow key={trainee.assetId}>
+                  <TableCell>{trainee.email}</TableCell>
                   <TableCell>
-                    <Button
-                      variant="contained"
-                      color={
-                        trainee.status === "opt-in"
-                          ? "secondary"
-                          : trainee.status === "approved"
-                          ? "disabled"
-                          : "primary"
-                      }
-                      disabled={
-                        trainee.status === "approved" ||
-                        trainee.status === "opt-in"
-                      }
-                      onClick={() => handleTraineeApproval(trainee)}
-                    >
-                      {trainee.status === "opt-in"
-                        ? "Opt-In"
-                        : trainee.status === "approved"
-                        ? "Approved"
-                        : "Approve"}
-                    </Button>
+                    {trainee.state === "approved" ? (
+                      "Approved"
+                    ) : trainee.state === "declined" ? (
+                      "Declined"
+                    ) : (
+                      <>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          onClick={() => handleApprove(trainee.assetId)}
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          variant="contained"
+                          color="secondary"
+                          onClick={() => handleDecline(trainee.assetId)}
+                        >
+                          Decline
+                        </Button>
+                      </>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

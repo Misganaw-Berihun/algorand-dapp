@@ -1,25 +1,45 @@
 import { useState } from "react";
-import {
-  Button,
-  TextField,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-} from "@mui/material";
+import { Button, TextField, CircularProgress } from "@mui/material";
 
 const TraineeForm = () => {
   const [name, setName] = useState("");
   const [assetId, setAssetId] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleOptIn = () => {
-    // Validate the form fields
+  const handleOptIn = async () => {
     if (name && assetId) {
-      // Send the opt-in request to the server (not implemented here)
-      alert("Opt-in request sent successfully!");
+      try {
+        setLoading(true);
+
+        // Replace the hardcoded email with the actual trainee's email
+        const traineeEmail = "misganawbmb@gmail.com"; // Get this from user input or authentication
+
+        const response = await fetch("http://127.0.0.1:8000/opt_in", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: name,
+            asset_id: assetId,
+            email: traineeEmail,
+          }),
+        });
+
+        if (response.ok) {
+          alert("Opt-in request sent successfully!");
+          setName("");
+          setAssetId("");
+        } else {
+          const errorMessage = await response.text();
+          alert(`Error opting in trainee: ${errorMessage}`);
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        alert("An error occurred.");
+      } finally {
+        setLoading(false);
+      }
     } else {
       alert("Please fill in all fields.");
     }
@@ -27,7 +47,7 @@ const TraineeForm = () => {
 
   return (
     <div>
-      <h2>Opt-In to Certificate</h2>
+      <h2>Get Certificate</h2>
       <TextField
         label="Name"
         value={name}
@@ -38,8 +58,13 @@ const TraineeForm = () => {
         value={assetId}
         onChange={(e) => setAssetId(e.target.value)}
       />
-      <Button variant="contained" color="primary" onClick={handleOptIn}>
-        Opt-In
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={handleOptIn}
+        disabled={loading}
+      >
+        {loading ? <CircularProgress size={24} /> : "Opt-In"}
       </Button>
     </div>
   );
